@@ -1,578 +1,1206 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-	<title></title>
-	<meta name="generator" content="LibreOffice 25.2.7.2 (Windows)"/>
-	<meta name="author" content="Un-named"/>
-	<meta name="created" content="2026-04-10T17:59:24"/>
-	<meta name="changed" content="2026-04-15T10:53:58"/>
-	<meta name="AppVersion" content="15.0000"/>
-	<style type="text/css">
-		@page { size: 8.5in 11in; margin: 0.5in }
-		p { widows: 2; color: #000000; line-height: 115%; text-align: left; orphans: 2; margin-bottom: 0.1in; direction: ltr; background: transparent }
-		p.western { font-family: "Times New Roman", serif; font-size: 10pt; so-language: en-US }
-		p.cjk { font-size: 10pt; so-language: zh-CN; font-family: "NSimSun" }
-		p.ctl { font-family: "Arial"; font-size: 10pt; so-language: hi-IN }
-		td p { widows: 0; color: #000000; text-align: left; orphans: 0; margin-bottom: 0in; direction: ltr; background: transparent }
-		td p.western { font-family: "Times New Roman", serif; font-size: 10pt; so-language: en-US }
-		td p.cjk { font-size: 10pt; so-language: zh-CN; font-family: "NSimSun" }
-		td p.ctl { font-family: "Arial"; font-size: 10pt; so-language: hi-IN }
-		a:link { color: #0563c1; text-decoration: underline }
-	</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jonathan W. Gunther</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #B47830;
+    --gold-light: #D4A054;
+    --gold-dim: #7A5020;
+    --bg: #0A0A0C;
+    --bg-2: #111115;
+    --bg-3: #18181E;
+    --surface: #1E1E26;
+    --border: rgba(180,120,48,0.18);
+    --border-dim: rgba(255,255,255,0.06);
+    --text: #E8E4DC;
+    --text-dim: #7A7670;
+    --text-mid: #B0ACA4;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Cormorant Garamond', serif;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── LAYOUT ── */
+  .site-wrap {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── LEFT TIMELINE RAIL ── */
+  .timeline-rail {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    border-right: 0.5px solid var(--border-dim);
+    background: rgba(10,10,12,0.92);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+
+  .rail-logo {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    margin-bottom: 32px;
+  }
+
+  .rail-line {
+    flex: 1;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold-dim) 0%, transparent 100%);
+    position: relative;
+  }
+
+  .rail-nodes {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    align-items: center;
+  }
+
+  .rail-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .rail-node-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--gold-dim);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+  }
+
+  .rail-node:hover .rail-node-dot,
+  .rail-node.active .rail-node-dot {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(180,120,48,0.5);
+  }
+
+  .rail-node-year {
+    font-size: 8px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+    transition: color 0.3s;
+  }
+
+  .rail-node:hover .rail-node-year,
+  .rail-node.active .rail-node-year {
+    color: var(--gold);
+  }
+
+  .rail-connector {
+    width: 1px;
+    height: 28px;
+    background: var(--border-dim);
+    margin: -2px 0;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 72px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px 80px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-ambient {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,120,48,0.12) 0%, transparent 65%);
+    top: -100px;
+    right: -100px;
+    pointer-events: none;
+  }
+
+  .hero-ambient-2 {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,120,48,0.06) 0%, transparent 65%);
+    bottom: 80px;
+    left: 40px;
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-name {
+    font-family: var(--display);
+    font-size: clamp(64px, 10vw, 120px);
+    line-height: 0.88;
+    color: var(--text);
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.4s forwards;
+  }
+
+  .hero-name-gold {
+    color: var(--gold);
+  }
+
+  .hero-tagline {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text-mid);
+    margin-top: 20px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+
+  .hero-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.7s forwards;
+  }
+
+  .hero-summary {
+    max-width: 560px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.8;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+
+  .hero-chapters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1s forwards;
+  }
+
+  .chapter-pill {
+    border: 0.5px solid var(--border);
+    padding: 8px 18px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .chapter-pill:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 80px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1.2s forwards;
+  }
+
+  .hero-scroll-line {
+    width: 40px;
+    height: 1px;
+    background: var(--gold-dim);
+  }
+
+  .hero-scroll-text {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ── SECTION SHARED ── */
+  .chapter {
+    padding: 100px 60px 100px 80px;
+    position: relative;
+    border-top: 0.5px solid var(--border-dim);
+  }
+
+  .chapter-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+    margin-bottom: 64px;
+  }
+
+  .chapter-number {
+    font-family: var(--display);
+    font-size: 80px;
+    line-height: 1;
+    color: rgba(180,120,48,0.08);
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .chapter-header-text {}
+
+  .chapter-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .chapter-title {
+    font-family: var(--display);
+    font-size: 48px;
+    line-height: 0.95;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .chapter-subtitle {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--text-mid);
+  }
+
+  /* ── CAREER TIMELINE ── */
+  .career-timeline {
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .career-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold-dim), transparent);
+  }
+
+  .career-entry {
+    position: relative;
+    padding-bottom: 48px;
+  }
+
+  .career-entry::before {
+    content: '';
+    position: absolute;
+    left: -36px;
+    top: 6px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 12px rgba(180,120,48,0.4);
+  }
+
+  .career-entry:last-child { padding-bottom: 0; }
+
+  .career-dates {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+  }
+
+  .career-role {
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .career-org {
+    font-size: 11px;
+    color: var(--text-mid);
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+
+  .career-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    max-width: 600px;
+  }
+
+  .career-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .career-tag {
+    font-size: 9px;
+    padding: 3px 10px;
+    border: 0.5px solid var(--border-dim);
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── CERT GRID ── */
+  .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .cert-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border-dim);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .cert-card:hover {
+    border-color: var(--border);
+  }
+
+  .cert-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--gold-dim);
+  }
+
+  .cert-card:hover::after {
+    background: var(--gold);
+  }
+
+  .cert-issuer {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .cert-name {
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .cert-date {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* ── MUSIC SECTION ── */
+  .music-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .music-block {
+    padding: 32px;
+    background: var(--bg-2);
+    border: 0.5px solid var(--border-dim);
+    position: relative;
+  }
+
+  .music-block-accent {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at top right, rgba(180,120,48,0.15), transparent 70%);
+  }
+
+  .music-block-title {
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .music-block-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-mid);
+    margin-bottom: 16px;
+  }
+
+  .music-block-body {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  /* ── COMMUNITY SECTION ── */
+  .community-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .comm-item {
+    border-bottom: 0.5px solid var(--border-dim);
+    padding-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .comm-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border: 0.5px solid var(--gold-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--gold);
+    font-family: var(--display);
+    line-height: 1;
+  }
+
+  .comm-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .comm-detail {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ── CONTACT / FOOTER ── */
+  .contact {
+    padding: 80px 60px 80px 80px;
+    border-top: 0.5px solid var(--border-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .contact-left {}
+
+  .contact-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .contact-name {
+    font-family: var(--display);
+    font-size: 56px;
+    line-height: 0.9;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .contact-item {
+    font-size: 12px;
+    color: var(--text-mid);
+    display: flex;
+    gap: 12px;
+  }
+
+  .contact-item-key {
+    color: var(--text-dim);
+    min-width: 60px;
+  }
+
+  .contact-item-val {
+    color: var(--text-mid);
+  }
+
+  .contact-right {
+    text-align: right;
+  }
+
+  .contact-tagline {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+  }
+
+  .footer-sig {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── QUOTE CALLOUT ── */
+  .quote-callout {
+    border-left: 2px solid var(--gold);
+    padding: 20px 32px;
+    margin: 48px 0;
+    background: rgba(180,120,48,0.04);
+  }
+
+  .quote-text {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-style: italic;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .quote-source {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-top: 12px;
+    text-transform: uppercase;
+  }
+
+  /* ── STAT ROW ── */
+  .stat-row {
+    display: flex;
+    gap: 48px;
+    padding: 40px 0;
+    border-top: 0.5px solid var(--border-dim);
+    border-bottom: 0.5px solid var(--border-dim);
+    margin: 48px 0;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {}
+
+  .stat-number {
+    font-family: var(--display);
+    font-size: 48px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ── MOBILE NAV HINT ── */
+  @media (max-width: 768px) {
+    .timeline-rail { width: 48px; }
+    .main { margin-left: 48px; }
+    .hero, .chapter, .contact { padding-left: 32px; padding-right: 24px; }
+    .hero-name { font-size: 52px; }
+    .music-grid, .community-list { grid-template-columns: 1fr; }
+  }
+</style>
 </head>
-<body lang="en-US" text="#000000" link="#0563c1" vlink="#800000" dir="ltr">
-<table width="720" cellpadding="5" cellspacing="0">
-	<col width="183"/>
-	<col width="517"/>
-	<tr>
-		<td colspan="2" width="710" valign="top" bgcolor="#e8e8e8" style="background: #e8e8e8; border: none; padding: 0in"><p class="western" style="margin-bottom: 0.03in">
-			<span class="sd-abs-pos" style="position: absolute; top: 0.28in; left: 4.75in; width: 123px"><img src="Jonathan_Gunther_Resume_4-17-26_html_a02f1d51.png" name="Image1" width="123" height="98" border="0"/>
-</span><br/>
-<br/>
+<body>
 
-			</p>
-			<table width="100%" cellpadding="4" cellspacing="0">
-				<col width="128*"/>
-				<col width="128*"/>
-				<tr valign="top">
-					<td width="50%" height="74" style="border: none; padding: 0in"><p class="western">
-						<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="6" style="font-size: 26pt"><b>Jon
-						Gunther<br/>
-</b></font></font></font><font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>MS365
-						Global Administrator &amp; Cloud Engineer</b></font></font></font></p>
-					</td>
-					<td width="50%" style="border: none; padding: 0in"><p class="western">
-						<br/>
+<!-- TIMELINE RAIL -->
+<nav class="timeline-rail" aria-label="Chapter navigation">
+  <div class="rail-logo">J·W·G</div>
+  <div class="rail-line">
+    <div class="rail-nodes">
+      <div class="rail-node active" onclick="scrollTo('#home')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">NOW</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#career')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">WORK</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#certifications')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">CERTS</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#law')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">LAW</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#music')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">MUSIC</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#community')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">COMM</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#contact')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">1998</div>
+      </div>
+    </div>
+  </div>
+</nav>
 
-						</p>
-					</td>
-				</tr>
-			</table>
-			<p class="western" style="margin-bottom: 0.03in; line-height: 100%">
-			<br/>
-<br/>
+<!-- MAIN CONTENT -->
+<div class="main">
 
-			</p>
-		</td>
-	</tr>
-	<tr valign="top">
-		<td width="183" bgcolor="#f5f5f5" style="background: #f5f5f5; border: none; padding: 0in"><p class="western" style="margin-top: 0.14in; margin-bottom: 0.04in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>CONTACT</b></font></font></font></p>
-			<p class="western" style="margin-bottom: 0.06in; line-height: 100%; border-top: none; border-bottom: 1px solid #bbbbbb; border-left: none; border-right: none; padding: 0in">
-			<br/>
-<br/>
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-ambient"></div>
+    <div class="hero-ambient-2"></div>
+    <div class="hero-eyebrow">// Jonathan Wayne Gunther &nbsp;·&nbsp; Centreville, MD</div>
+    <div class="hero-name">MANY<br>LIVES,<br><span class="hero-name-gold">ONE MAN</span></div>
+    <div class="hero-divider"></div>
+    <div class="hero-tagline">Officer. Builder. Musician. Storyteller. Still growing.</div>
+    <div class="hero-summary">
+      Over 25 years of life lived fully across law enforcement, enterprise technology, 
+      music, and community service. This is a living record — not a résumé, 
+      but an honest account of a man in motion.
+    </div>
+    <div class="hero-chapters">
+      <a class="chapter-pill" href="#career">Cloud &amp; IT</a>
+      <a class="chapter-pill" href="#law">Law Enforcement</a>
+      <a class="chapter-pill" href="#certifications">Certifications</a>
+      <a class="chapter-pill" href="#music">Music</a>
+      <a class="chapter-pill" href="#community">Community</a>
+    </div>
+    <div class="hero-scroll">
+      <div class="hero-scroll-line"></div>
+      <span class="hero-scroll-text">Scroll to explore</span>
+    </div>
+  </section>
 
-			</p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">guntherjw50@gmail.com</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">+1
-			(443) 988-8663</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Centreville,
-			MD</font></font></font></p>
-			<p class="western" style="margin-top: 0.14in; margin-bottom: 0.04in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>EDUCATION</b></font></font></font></p>
-			<p class="western" style="margin-bottom: 0.06in; line-height: 100%; border-top: none; border-bottom: 1px solid #bbbbbb; border-left: none; border-right: none; padding: 0in">
-			<br/>
-<br/>
+  <!-- CAREER / IT -->
+  <section class="chapter" id="career">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">01</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">Current Chapter</div>
+        <div class="chapter-title">CLOUD &amp;<br>TECHNOLOGY</div>
+        <div class="chapter-subtitle">Where discipline meets digital transformation</div>
+      </div>
+    </div>
 
-			</p>
-			<p class="western" style="margin-top: 0.03in; margin-bottom: 0in; line-height: 100%">
-			<br/>
+    <div class="career-timeline">
 
-			</p>
-			<p class="western" style="margin-top: 0.03in; margin-bottom: 0in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt"><b>Wor-Wic
-			Community College</b></font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Criminal
-			Justice</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Certificate:
-			Entrance-Level</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Law
-			Enforcement Officers</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">March
-			2008 – June 2008</font></font></font></p>
-			<p class="western" style="margin-top: 0.03in; margin-bottom: 0in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt"><b>Chesapeake
-			College</b></font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">General
-			Studies /</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Computer
-			Applications</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Aug
-			1998 – May 2006</font></font></font></p>
-			<p class="western" style="margin-top: 0.03in; margin-bottom: 0in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt"><b>HarvardX</b></font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			CS50 Course</p>
-			<p class="western" style="margin-top: 0.03in; margin-bottom: 0in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt"><b>Queen
-			Anne's County HS</b></font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">High
-			School Diploma</font></font></font></p>
-			<p class="western" style="margin-top: 0.02in; margin-bottom: 0.02in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Sep
-			1994 – May 1998</font></font></font></p>
-			<p class="western" style="margin-top: 0.14in; margin-bottom: 0.04in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>CERTIFICATIONS</b></font></font></font></p>
-			<p class="western" style="margin-bottom: 0.06in; line-height: 100%; border-top: none; border-bottom: 1px solid #bbbbbb; border-left: none; border-right: none; padding: 0in">
-			<br/>
-<br/>
+      <div class="career-entry reveal">
+        <div class="career-dates">MAY 2021 — APRIL 2026</div>
+        <div class="career-role">IT SPECIALIST III</div>
+        <div class="career-org">M365 Global Administrator &nbsp;·&nbsp; Urban Grid Solar Projects LLC, Houston TX</div>
+        <div class="career-desc">
+          Architected and administered Microsoft 365 and Entra ID environments at enterprise scale. 
+          Built Zero Trust security frameworks using Conditional Access and granular MFA policies. 
+          Integrated Microsoft Sentinel SIEM/SOAR for automated incident response. 
+          Developed custom PowerShell automation using the Microsoft Graph SDK, 
+          reducing provisioning time and streamlining compliance workflows.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">M365 / Entra ID</span>
+          <span class="career-tag">Zero Trust</span>
+          <span class="career-tag">Microsoft Sentinel</span>
+          <span class="career-tag">PowerShell</span>
+          <span class="career-tag">Defender for Endpoint</span>
+          <span class="career-tag">Intune UEM</span>
+          <span class="career-tag">Cisco Meraki</span>
+          <span class="career-tag">Azure &amp; AWS</span>
+        </div>
+      </div>
 
-			</p>
-			<ul>
-				<li value="1"><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">CompTIA
-				A+</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">CompTIA
-				Network+</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">CompTIA
-				CIOS</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.14in; margin-bottom: 0.04in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>SKILLS</b></font></font></font></p>
-			<p class="western" style="margin-bottom: 0.06in; line-height: 100%; border-top: none; border-bottom: 1px solid #bbbbbb; border-left: none; border-right: none; padding: 0in">
-			<br/>
-<br/>
+    </div>
 
-			</p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Identity
-				&amp; Access Mgmt</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Zero
-				Trust Architecture</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Microsoft
-				365 / Entra ID</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Microsoft
-				Sentinel SIEM</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Defender
-				for Endpoint</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Intune
-				UEM/MAM</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">PowerShell
-				/ Graph SDK</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Power
-				Platform</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Azure
-				&amp; AWS</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Hyper-V/VMware</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Project
-				Management</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Switches/Firewalls</font></font></font></p></li>
-			</ul>
-			<p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%; margin-left: 0.21in">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Cisco
-			Meraki/Ubiquiti</font></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Multi
-				Agency Support</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Public
-				Safety Systems</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">CJIS
-				Compliance</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">AI
-				/ LLM Orchestration</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Manage
-				Engine/Service Desk Plus</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">TeamViewer</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">IT
-				Glue</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Visual
-				Studio Code</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Unity
-				Engine</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Project
-				Management</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Oracle
-				Netsuite</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">Linux,
-				iOS, Android</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 9pt">VPN
-				Technologies</font></font></font></p></li>
-			</ul>
-			<p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%; margin-left: 0.21in">
-			<br/>
-<br/>
+    <div class="stat-row reveal">
+      <div class="stat-item">
+        <div class="stat-number">25+</div>
+        <div class="stat-label">Years Experience</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">M365</div>
+        <div class="stat-label">Global Admin</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">AI</div>
+        <div class="stat-label">Copilot &amp; LLM Ops</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">EDR</div>
+        <div class="stat-label">Threat Protection</div>
+      </div>
+    </div>
 
-			</p>
-		</td>
-		<td width="517" style="border: none; padding: 0in"><p class="western" style="margin-top: 0.17in; margin-bottom: 0.04in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="3" style="font-size: 12pt"><b>CAREER
-			OBJECTIVE</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.07in; line-height: 100%; border-top: none; border-bottom: 1px solid #bbbbbb; border-left: none; border-right: none; padding: 0in">
-			<br/>
-<br/>
+    <div class="career-timeline">
+      <div class="career-entry reveal">
+        <div class="career-dates">AUG 1998 — MAY 2006</div>
+        <div class="career-role">GENERAL STUDIES &amp; COMPUTER APPLICATIONS</div>
+        <div class="career-org">Chesapeake College</div>
+        <div class="career-desc">
+          Built the academic and technical foundation that would underpin a career spanning 
+          both public safety technology and enterprise IT — including early work 
+          developing databases for community service organizations.
+        </div>
+      </div>
+    </div>
+  </section>
 
-			</p>
-			<p class="western" style="margin-top: 0.03in; margin-bottom: 0.03in; line-height: 100%">
-			<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">M365
-			Administrator &amp; Cloud Engineer with over 25 years of
-			experience spanning enterprise IT, cybersecurity, and public
-			safety. Proven ability to architect and manage Microsoft 365 and
-			Entra ID environments at scale, implement Zero Trust frameworks,
-			and drive automation through PowerShell and the Power Platform.
-			Experienced in modernizing security operations with Microsoft
-			Sentinel (SIEM/SOAR), Defender for Endpoint (EDR), and Intune
-			(UEM/MAM). Ready to leverage a unique blend of law enforcement
-			discipline and enterprise technology leadership to deliver
-			security, compliance, and operational excellence.</font></font></font></p>
-			<p class="western" style="margin-top: 0.17in; margin-bottom: 0.04in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="3" style="font-size: 12pt"><b>PROFESSIONAL
-			EXPERIENCE</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.07in; line-height: 100%; border-top: none; border-bottom: 1px solid #bbbbbb; border-left: none; border-right: none; padding: 0in">
-			<br/>
-<br/>
+  <!-- CERTIFICATIONS -->
+  <section class="chapter" id="certifications">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">02</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">Credentials</div>
+        <div class="chapter-title">CERTIFICATIONS<br>&amp; TRAINING</div>
+        <div class="chapter-subtitle">A record of continuous learning</div>
+      </div>
+    </div>
 
-			</p>
-			<p class="western" style="margin-top: 0.11in; margin-bottom: 0.01in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>IT
-			Specialist III – M365 Global Administrator</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.04in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><i>Urban
-			Grid Solar Projects LLC, Houston, TX / May 2021 – April 2026</i></font></font></font></p>
-			<p class="western" style="margin-top: 0.04in; margin-bottom: 0in; line-height: 100%">
-			<font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><b>Identity
-			&amp; Access Management (IAM)</b></font></font></p>
-			<ul>
-				<li value="1"><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Administered
-				Microsoft Entra ID (Azure AD) environments including identity
-				governance, group lifecycle management, and secure service
-				principal configuration.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Architected
-				Zero Trust security models using Conditional Access policies with
-				granular MFA requirements based on user risk and device
-				compliance.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Enforced
-				Least Privilege through Microsoft Entra PIM with Just-In-Time
-				(JIT) elevation to minimize permanent administrative footprints.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Orchestrated
-				Hybrid Identity management via Microsoft Entra Connect, ensuring
-				directory synchronization between on-premises AD and Microsoft
-				365.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.06in; margin-bottom: 0in; line-height: 100%">
-			<font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><b>Cybersecurity
-			&amp; Threat Protection</b></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Integrated
-				Microsoft Sentinel (SIEM/SOAR) with Defender for Cloud to
-				centralize telemetry and automate incident response across hybrid
-				environments.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Orchestrated
-				EDR operations using Microsoft Defender for Endpoint, proactively
-				hunting for advanced persistent threats (APTs).</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Deployed
-				Microsoft Defender for Office 365 Safe Links/Attachments for
-				time-of-click protection against phishing and zero-day exploits.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Implemented
-				Port-Based Network Access Control (PNAC) via Cisco Meraki,
-				enforcing hardware-level segmentation and isolated VLAN rules.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Executed
-				end-to-end eDiscovery workflows within Microsoft Purview,
-				managing legal holds and forensic data retrieval.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.06in; margin-bottom: 0in; line-height: 100%">
-			<font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><b>Automation
-			&amp; Cloud Engineering</b></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Developed
-				custom PowerShell scripts using the Microsoft Graph SDK for bulk
-				user provisioning, permission auditing, and license management.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Digitized
-				legacy processes by engineering custom solutions within the
-				Microsoft Power Platform to enhance team velocity.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Engineered
-				bi-directional integrations between SharePoint and Procore via
-				SyncEzy, automating project provisioning for large-scale
-				construction data.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.06in; margin-bottom: 0in; line-height: 100%">
-			<font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><b>AI
-			Operations &amp; LLM Orchestration</b></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Configured
-				Microsoft Copilot within M365, establishing data sensitivity
-				labels and tenant-level security policies for compliant AI
-				adoption.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Architected
-				test lab workflows across diverse LLM ecosystems including
-				Copilot, OpenAI GPT-4, Anthropic Claude, Google Gemini, and Grok.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Engineered
-				high-performance environments for open-source models (Meta Llama,
-				Ministral, DeepSeek) using Groq for ultra-low latency inference.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.11in; margin-bottom: 0.01in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>Police
-			Officer</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.04in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><i>Centreville
-			Police Department, Centreville, MD / Jan 2008 – May 2021</i></font></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Managed
-				and maintained mission-critical hardware and software including
-				Mobile Data Terminals, body-worn camera systems, and centralized
-				data servers.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Orchestrated
-				and passed rigorous audits by the Maryland State Police and FBI,
-				ensuring 100% adherence to CJIS and state-level data security
-				protocols.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Served
-				as Patrol, Duty Officer, and Lead Investigator, coordinating
-				field response and overseeing integrity of digital and physical
-				evidence.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Managed
-				high-stakes data entries within the CN1 (NCIC/METERS) system
-				including entry/removal of warrants and legal expungements.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Recommended
-				by Chief of Police for promotion to Detective.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.11in; margin-bottom: 0.01in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>IT
-			Technician</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.04in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><i>Wildlife
-			International Ltd. / Eurofins Scientific, Easton, MD / Feb 2001 –
-			Jul 2005</i></font></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Managed
-				high-availability multi-server environments and led
-				legacy-to-modern infrastructure migrations.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Directed
-				Business Continuity and Disaster Recovery (BCDR) operations,
-				maintaining 99.9% uptime during departmental transitions.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Engineered
-				and deployed secure wireless network infrastructures and
-				developed a comprehensive SOP library across departments.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Delivered
-				enterprise-level technical consultancy optimizing end-user
-				productivity for the Microsoft 365 suite.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.17in; margin-bottom: 0.04in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="3" style="font-size: 12pt"><b>ADDITIONAL
-			EXPERIENCE</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.07in; line-height: 100%; border-top: none; border-bottom: 1px solid #bbbbbb; border-left: none; border-right: none; padding: 0in">
-			<br/>
-<br/>
+    <div class="cert-grid">
+      <div class="cert-card reveal">
+        <div class="cert-issuer">CompTIA</div>
+        <div class="cert-name">A+<br>CERTIFIED CE</div>
+        <div class="cert-date">Version 2021 &nbsp;·&nbsp; Certified Feb 2021 &nbsp;·&nbsp; Renewed Apr 2024</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">CompTIA</div>
+        <div class="cert-name">Network+<br>CERTIFIED CE</div>
+        <div class="cert-date">Certified Apr 2021 &nbsp;·&nbsp; Valid through Apr 2024</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Maryland Police Training Commission</div>
+        <div class="cert-name">ENTRANCE LEVEL<br>LAW ENFORCEMENT</div>
+        <div class="cert-date">Jan–Jun 2008 &nbsp;·&nbsp; Eastern Shore Criminal Justice Academy</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Maryland Dept. of Public Safety</div>
+        <div class="cert-name">NCIC LOGON<br>CERTIFICATION</div>
+        <div class="cert-date">Issued Sep 12, 2011 &nbsp;·&nbsp; Criminal Justice Information System</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">MCTFT / St. Petersburg College</div>
+        <div class="cert-name">INTERVIEW &amp;<br>INTERROGATION</div>
+        <div class="cert-date">24-hour course &nbsp;·&nbsp; Salisbury, MD &nbsp;·&nbsp; Sep 2009</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Expert Consulting Services</div>
+        <div class="cert-name">DE-ESCALATION<br>CRISIS MGMT</div>
+        <div class="cert-date">MPCTC #P40257 &nbsp;·&nbsp; May 3, 2019</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Centreville Police Department</div>
+        <div class="cert-name">CPR &amp; AED<br>TRAINING</div>
+        <div class="cert-date">Course #P-27672 (6hrs) &nbsp;·&nbsp; March 7, 2016</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">University of Maryland — MFRI</div>
+        <div class="cert-name">HAZARDOUS<br>MATERIALS</div>
+        <div class="cert-date">12 hrs &nbsp;·&nbsp; June 2008 &nbsp;·&nbsp; Final Grade: 92%</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">RAPID — Queen Anne's Co.</div>
+        <div class="cert-name">REGIONAL AUTO<br>PROPERTY DB</div>
+        <div class="cert-date">4-hour training &nbsp;·&nbsp; November 14, 2011</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Centreville Police Department</div>
+        <div class="cert-name">AUTISM AWARENESS<br>DEVL. DISABILITIES</div>
+        <div class="cert-date">Course #P-41919 (4hrs) &nbsp;·&nbsp; October 15, 2020</div>
+      </div>
+    </div>
+  </section>
 
-			</p>
-			<p class="western" style="margin-top: 0.11in; margin-bottom: 0.01in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>Wireless
-			Sales / Mobile Data Device Technician</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.04in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><i>Cingular
-			/ AT&amp;T Wireless, MD / Jul 2006 – Dec 2007</i></font></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Surpassed
-				aggressive revenue targets, consistently ranking among top
-				performers for device sales and service plan upgrades.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Provided
-				expert-level support for the inaugural Apple iPhone launch,
-				managing hardware defects, activations, and software
-				synchronization.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Diagnosed
-				and resolved complex data connectivity issues for early
-				smartphone platforms including BlackBerry, Palm OS, and Windows
-				Mobile.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.11in; margin-bottom: 0.01in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>IT
-			Technician</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.04in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><i>Talbot
-			County Government, MD / Jul 2005 – Jan 2006</i></font></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Led
-				decommissioning and re-installation of enterprise hardware during
-				large-scale departmental relocations.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Served
-				as primary contact for Dell hardware support; provided
-				specialized technical assistance to the State's Attorney's
-				Office, Easton Airport, and Tourism.</font></font></font></p></li>
-			</ul>
-			<p class="western" style="margin-top: 0.11in; margin-bottom: 0.01in; line-height: 100%">
-			<span style="text-transform: uppercase"><font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 11pt"><b>Computer
-			Consultant</b></font></font></font></span></p>
-			<p class="western" style="margin-bottom: 0.04in; line-height: 100%">
-			<font color="#555555"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt"><i>Non-Profit
-			Perspective Inc., Baltimore, MD / Oct 1997 – Oct 1998</i></font></font></font></p>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Executed
-				a 50-node hardware rollout for the Good Shepherd Center including
-				network administrator workstation configuration.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Co-developed
-				the inaugural Cold Weather Shelter Database for Baltimore City
-				using Microsoft Access.</font></font></font></p></li>
-			</ul>
-			<ul>
-				<li><p style="margin-top: 0.01in; margin-bottom: 0.01in; line-height: 100%">
-				<font color="#1a1a1a"><font face="Arial, sans-serif"><font size="2" style="font-size: 10pt">Supported
-				hybrid server env. managing client logins and network
-				connectivity.</font></font></font></p></li>
-			</ul>
-		</td>
-	</tr>
-</table>
+  <!-- LAW ENFORCEMENT -->
+  <section class="chapter" id="law">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">03</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">A Decade of Service</div>
+        <div class="chapter-title">LAW<br>ENFORCEMENT</div>
+        <div class="chapter-subtitle">Ten years protecting and serving Centreville, Maryland</div>
+      </div>
+    </div>
+
+    <div class="career-timeline">
+
+      <div class="career-entry reveal">
+        <div class="career-dates">JANUARY 2014</div>
+        <div class="career-role">CORPORAL</div>
+        <div class="career-org">Centreville Police Department &nbsp;·&nbsp; Queen Anne's County, MD</div>
+        <div class="career-desc">
+          Promoted to Corporal effective January 7, 2014 — recognized for leadership 
+          and sustained excellence in service. Signed by Col. Charles M. Rhodes, Chief of Police.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">Leadership</span>
+          <span class="career-tag">Supervision</span>
+          <span class="career-tag">CJIS Compliance</span>
+        </div>
+      </div>
+
+      <div class="career-entry reveal">
+        <div class="career-dates">JANUARY 2010</div>
+        <div class="career-role">OFFICER FIRST CLASS</div>
+        <div class="career-org">Centreville Police Department</div>
+        <div class="career-desc">
+          Promoted to Officer First Class effective January 6, 2010. 
+          Served with distinction through patrol, community engagement, 
+          and specialized training programs.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">Patrol</span>
+          <span class="career-tag">Community Relations</span>
+          <span class="career-tag">Traffic Enforcement</span>
+        </div>
+      </div>
+
+      <div class="career-entry reveal">
+        <div class="career-dates">JUNE 2008 — TENURE</div>
+        <div class="career-role">POLICE OFFICER</div>
+        <div class="career-org">Centreville Police Department &nbsp;·&nbsp; Graduate, Eastern Shore Criminal Justice Academy</div>
+        <div class="career-desc">
+          Graduated from the 60th entrance-level class of the Eastern Shore Criminal Justice Academy 
+          (Wor-Wic Community College), completing 941 hours of instruction in law enforcement. 
+          One of a cohort that included officers from Dorchester, Kent, Queen Anne's, and Talbot counties.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">NCIC Certified</span>
+          <span class="career-tag">RAPID Trained</span>
+          <span class="career-tag">HazMat Awareness</span>
+          <span class="career-tag">Crisis Management</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="quote-callout reveal">
+      <div class="quote-text">"In recognition of completion of ten years of loyal and dedicated service to the Town of Centreville."</div>
+      <div class="quote-source">Town of Centreville &nbsp;·&nbsp; Certificate of Appreciation &nbsp;·&nbsp; Centreville, Maryland</div>
+    </div>
+
+    <div class="stat-row reveal">
+      <div class="stat-item">
+        <div class="stat-number">10</div>
+        <div class="stat-label">Years of Service</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">941</div>
+        <div class="stat-label">Training Hours</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">CPL</div>
+        <div class="stat-label">Final Rank</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MUSIC -->
+  <section class="chapter" id="music">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">04</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">The Other Stage</div>
+        <div class="chapter-title">MUSIC &amp;<br>SONGWRITING</div>
+        <div class="chapter-subtitle">From the Eastern Shore to Nashville and back</div>
+      </div>
+    </div>
+
+    <div class="music-grid reveal">
+      <div class="music-block">
+        <div class="music-block-accent"></div>
+        <div class="music-block-title">STATUE SPREAD</div>
+        <div class="music-block-sub">Rock Band — Queen Anne's County, MD</div>
+        <div class="music-block-body">
+          Founding member of Statue Spread — a local rock act that blended the musical 
+          abilities of Mike Waskey, Matt Baldea, Jesse Beck, Jarid Robinson, and Jon Gunther. 
+          Inspired by The Deaf Tones and Tool, the band performed at the Living Water 
+          Lutheran Church benefit concert in historic Stevensville, raising funds for the 
+          Living Water Food Bank. Featured in the local press.
+        </div>
+      </div>
+      <div class="music-block">
+        <div class="music-block-accent"></div>
+        <div class="music-block-title">BREAK IT DOWN</div>
+        <div class="music-block-sub">Original Song — Nashville Demo, 2004</div>
+        <div class="music-block-body">
+          Received a professional demo and certificate of originality from the Paramount Group 
+          in Nashville, Tennessee for the original song "Break It Down." 
+          Creative Director Norm Daniels wrote: <em>"It turned out very well. 
+          You're to be congratulated on doing such a good job on your writing. 
+          This is a demo that we and you can be proud to present to any music business professional."</em>
+          The melody was certified original and exclusive.
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-callout reveal" style="margin-top:40px;">
+      <div class="quote-text">"John Gunther plays his guitar and sings as he takes part in Sunday's annual walk across the Bay Bridge."</div>
+      <div class="quote-source">Associated Press &nbsp;·&nbsp; Chesapeake Bay Bridge Walk &nbsp;·&nbsp; Kent Island, MD</div>
+    </div>
+  </section>
+
+  <!-- COMMUNITY -->
+  <section class="chapter" id="community">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">05</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">Beyond the Badge &amp; the Beat</div>
+        <div class="chapter-title">COMMUNITY<br>&amp; SERVICE</div>
+        <div class="chapter-subtitle">The record of a man who showed up</div>
+      </div>
+    </div>
+
+    <div class="community-list">
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">S</div>
+        <div>
+          <div class="comm-title">Supervised Career Orientation — Homeless Outreach</div>
+          <div class="comm-detail">
+            Featured in student newspaper for volunteering with Non-Profit Perspective Inc. 
+            and Community Assistance Network (CAN) in Baltimore, developing databases to 
+            organize and support homeless shelter operations. "Jon no longer works at the 
+            shelters but provides assistance to students using their work-based learning experience."
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">B</div>
+        <div>
+          <div class="comm-title">Chesapeake Bay Bridge Annual Walk</div>
+          <div class="comm-detail">
+            Participated in the 26th annual Bay Bridge Walk — the warmest in recent memory 
+            at 90°F — playing guitar and singing as an estimated 60,000 people crossed 
+            the 4.3-mile span. Featured by the Associated Press.
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">C</div>
+        <div>
+          <div class="comm-title">Cold Weather Shelter Initiative</div>
+          <div class="comm-detail">
+            Worked with community partners to support cold weather shelter programs, 
+            contributing organizational and technology skills to help coordinate 
+            services for vulnerable populations in the region.
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">L</div>
+        <div>
+          <div class="comm-title">Upper Shore Career Connections — Student Leadership</div>
+          <div class="comm-detail">
+            Certificate of Achievement awarded December 10, 1997 for participation in the 
+            Student Leadership/Career Peer Mentoring Program. Recognized by Heather Moore, 
+            Career Specialist.
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">F</div>
+        <div>
+          <div class="comm-title">Food Bank Benefit Concert</div>
+          <div class="comm-detail">
+            Statue Spread performed to benefit the Living Water Food Bank in Stevensville. 
+            All ticket proceeds — $3 or three cans of food — were donated to the food bank 
+            in the Island Plaza. "There's no need to be bored — it will be a great time."
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">T</div>
+        <div>
+          <div class="comm-title">Ten Years — Town of Centreville</div>
+          <div class="comm-detail">
+            Formally recognized by the Centreville Town Council — including Council President 
+            Jim Beauchamp, Vice President Jeffrey Morgan, and Member Timothy McCluskey — 
+            for ten years of loyal and dedicated service to the town.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- CONTACT / FOOTER -->
+  <footer class="contact" id="contact">
+    <div class="contact-left">
+      <div class="contact-label">// Get in touch</div>
+      <div class="contact-name">LET'S<br>CONNECT</div>
+      <div class="contact-details">
+        <div class="contact-item">
+          <span class="contact-item-key">Email</span>
+          <span class="contact-item-val">guntherjw50@gmail.com</span>
+        </div>        
+        <div class="contact-item">
+          <span class="contact-item-key">Location</span>
+          <span class="contact-item-val">Centreville, MD</span>
+        </div>
+      </div>
+    </div>
+    <div class="contact-right">
+      <div class="contact-tagline">"Still growing.<br>Always showing up."</div>
+      <div class="footer-sig">J · W · GUNTHER &nbsp;·&nbsp; EST. 1980</div>
+    </div>
+  </footer>
+
+</div><!-- end .main -->
+
+<script>
+  // Rail node active state on scroll
+  const sections = ['home','career','certifications','law','music','community','contact'];
+  const nodes = document.querySelectorAll('.rail-node');
+
+  function updateRail() {
+    let current = 0;
+    sections.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 200) current = i;
+    });
+    nodes.forEach((n, i) => n.classList.toggle('active', i === current));
+  }
+
+  window.addEventListener('scroll', updateRail, { passive: true });
+
+  // Scroll to section
+  function scrollTo(id) {
+    const el = document.querySelector(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  reveals.forEach(r => observer.observe(r));
+</script>
 </body>
 </html>
