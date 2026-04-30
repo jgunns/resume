@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jonathan W. Gunther</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #B47830;
+    --gold-light: #D4A054;
+    --gold-dim: #7A5020;
+    --bg: #0A0A0C;
+    --bg-2: #111115;
+    --bg-3: #18181E;
+    --surface: #1E1E26;
+    --border: rgba(180,120,48,0.18);
+    --border-dim: rgba(255,255,255,0.06);
+    --text: #E8E4DC;
+    --text-dim: #7A7670;
+    --text-mid: #B0ACA4;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Cormorant Garamond', serif;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── LAYOUT ── */
+  .site-wrap {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── LEFT TIMELINE RAIL ── */
+  .timeline-rail {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    border-right: 0.5px solid var(--border-dim);
+    background: rgba(10,10,12,0.92);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+
+  .rail-logo {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    margin-bottom: 32px;
+  }
+
+  .rail-line {
+    flex: 1;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold-dim) 0%, transparent 100%);
+    position: relative;
+  }
+
+  .rail-nodes {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    align-items: center;
+  }
+
+  .rail-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .rail-node-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--bg-3);
+    border: 1px solid var(--gold-dim);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+  }
+
+  .rail-node:hover .rail-node-dot,
+  .rail-node.active .rail-node-dot {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(180,120,48,0.5);
+  }
+
+  .rail-node-year {
+    font-size: 8px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+    transition: color 0.3s;
+  }
+
+  .rail-node:hover .rail-node-year,
+  .rail-node.active .rail-node-year {
+    color: var(--gold);
+  }
+
+  .rail-connector {
+    width: 1px;
+    height: 28px;
+    background: var(--border-dim);
+    margin: -2px 0;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: 72px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px 80px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-ambient {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,120,48,0.12) 0%, transparent 65%);
+    top: -100px;
+    right: -100px;
+    pointer-events: none;
+  }
+
+  .hero-ambient-2 {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(180,120,48,0.06) 0%, transparent 65%);
+    bottom: 80px;
+    left: 40px;
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-name {
+    font-family: var(--display);
+    font-size: clamp(64px, 10vw, 120px);
+    line-height: 0.88;
+    color: var(--text);
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.4s forwards;
+  }
+
+  .hero-name-gold {
+    color: var(--gold);
+  }
+
+  .hero-tagline {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--text-mid);
+    margin-top: 20px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+
+  .hero-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.7s forwards;
+  }
+
+  .hero-summary {
+    max-width: 560px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.8;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+
+  .hero-chapters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1s forwards;
+  }
+
+  .chapter-pill {
+    border: 0.5px solid var(--border);
+    padding: 8px 18px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .chapter-pill:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 80px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1.2s forwards;
+  }
+
+  .hero-scroll-line {
+    width: 40px;
+    height: 1px;
+    background: var(--gold-dim);
+  }
+
+  .hero-scroll-text {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ── SECTION SHARED ── */
+  .chapter {
+    padding: 100px 60px 100px 80px;
+    position: relative;
+    border-top: 0.5px solid var(--border-dim);
+  }
+
+  .chapter-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+    margin-bottom: 64px;
+  }
+
+  .chapter-number {
+    font-family: var(--display);
+    font-size: 80px;
+    line-height: 1;
+    color: rgba(180,120,48,0.08);
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .chapter-header-text {}
+
+  .chapter-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .chapter-title {
+    font-family: var(--display);
+    font-size: 48px;
+    line-height: 0.95;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .chapter-subtitle {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-style: italic;
+    color: var(--text-mid);
+  }
+
+  /* ── CAREER TIMELINE ── */
+  .career-timeline {
+    position: relative;
+    padding-left: 32px;
+  }
+
+  .career-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold-dim), transparent);
+  }
+
+  .career-entry {
+    position: relative;
+    padding-bottom: 48px;
+  }
+
+  .career-entry::before {
+    content: '';
+    position: absolute;
+    left: -36px;
+    top: 6px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 12px rgba(180,120,48,0.4);
+  }
+
+  .career-entry:last-child { padding-bottom: 0; }
+
+  .career-dates {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+  }
+
+  .career-role {
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .career-org {
+    font-size: 11px;
+    color: var(--text-mid);
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+
+  .career-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    max-width: 600px;
+  }
+
+  .career-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .career-tag {
+    font-size: 9px;
+    padding: 3px 10px;
+    border: 0.5px solid var(--border-dim);
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── CERT GRID ── */
+  .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .cert-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border-dim);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .cert-card:hover {
+    border-color: var(--border);
+  }
+
+  .cert-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--gold-dim);
+  }
+
+  .cert-card:hover::after {
+    background: var(--gold);
+  }
+
+  .cert-issuer {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .cert-name {
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .cert-date {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* ── MUSIC SECTION ── */
+  .music-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .music-block {
+    padding: 32px;
+    background: var(--bg-2);
+    border: 0.5px solid var(--border-dim);
+    position: relative;
+  }
+
+  .music-block-accent {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at top right, rgba(180,120,48,0.15), transparent 70%);
+  }
+
+  .music-block-title {
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .music-block-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-mid);
+    margin-bottom: 16px;
+  }
+
+  .music-block-body {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  /* ── COMMUNITY SECTION ── */
+  .community-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .comm-item {
+    border-bottom: 0.5px solid var(--border-dim);
+    padding-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .comm-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border: 0.5px solid var(--gold-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--gold);
+    font-family: var(--display);
+    line-height: 1;
+  }
+
+  .comm-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .comm-detail {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ── CONTACT / FOOTER ── */
+  .contact {
+    padding: 80px 60px 80px 80px;
+    border-top: 0.5px solid var(--border-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .contact-left {}
+
+  .contact-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .contact-name {
+    font-family: var(--display);
+    font-size: 56px;
+    line-height: 0.9;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .contact-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .contact-item {
+    font-size: 12px;
+    color: var(--text-mid);
+    display: flex;
+    gap: 12px;
+  }
+
+  .contact-item-key {
+    color: var(--text-dim);
+    min-width: 60px;
+  }
+
+  .contact-item-val {
+    color: var(--text-mid);
+  }
+
+  .contact-right {
+    text-align: right;
+  }
+
+  .contact-tagline {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-bottom: 32px;
+  }
+
+  .footer-sig {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── QUOTE CALLOUT ── */
+  .quote-callout {
+    border-left: 2px solid var(--gold);
+    padding: 20px 32px;
+    margin: 48px 0;
+    background: rgba(180,120,48,0.04);
+  }
+
+  .quote-text {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-style: italic;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .quote-source {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-top: 12px;
+    text-transform: uppercase;
+  }
+
+  /* ── STAT ROW ── */
+  .stat-row {
+    display: flex;
+    gap: 48px;
+    padding: 40px 0;
+    border-top: 0.5px solid var(--border-dim);
+    border-bottom: 0.5px solid var(--border-dim);
+    margin: 48px 0;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {}
+
+  .stat-number {
+    font-family: var(--display);
+    font-size: 48px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ── MOBILE NAV HINT ── */
+  @media (max-width: 768px) {
+    .timeline-rail { width: 48px; }
+    .main { margin-left: 48px; }
+    .hero, .chapter, .contact { padding-left: 32px; padding-right: 24px; }
+    .hero-name { font-size: 52px; }
+    .music-grid, .community-list { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TIMELINE RAIL -->
+<nav class="timeline-rail" aria-label="Chapter navigation">
+  <div class="rail-logo">J·W·G</div>
+  <div class="rail-line">
+    <div class="rail-nodes">
+      <div class="rail-node active" onclick="scrollTo('#home')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">NOW</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#career')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">WORK</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#certifications')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">CERTS</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#law')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">LAW</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#music')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">MUSIC</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#community')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">COMM</div>
+      </div>
+      <div class="rail-connector"></div>
+      <div class="rail-node" onclick="scrollTo('#contact')">
+        <div class="rail-node-dot"></div>
+        <div class="rail-node-year">1998</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-ambient"></div>
+    <div class="hero-ambient-2"></div>
+    <div class="hero-eyebrow">// Jonathan Wayne Gunther &nbsp;·&nbsp; Centreville, MD</div>
+    <div class="hero-name">MANY<br>LIVES,<br><span class="hero-name-gold">ONE MAN</span></div>
+    <div class="hero-divider"></div>
+    <div class="hero-tagline">Officer. Builder. Musician. Storyteller. Still growing.</div>
+    <div class="hero-summary">
+      Over 25 years of life lived fully across law enforcement, enterprise technology, 
+      music, and community service. This is a living record — not a résumé, 
+      but an honest account of a man in motion.
+    </div>
+    <div class="hero-chapters">
+      <a class="chapter-pill" href="#career">Cloud &amp; IT</a>
+      <a class="chapter-pill" href="#law">Law Enforcement</a>
+      <a class="chapter-pill" href="#certifications">Certifications</a>
+      <a class="chapter-pill" href="#music">Music</a>
+      <a class="chapter-pill" href="#community">Community</a>
+    </div>
+    <div class="hero-scroll">
+      <div class="hero-scroll-line"></div>
+      <span class="hero-scroll-text">Scroll to explore</span>
+    </div>
+  </section>
+
+  <!-- CAREER / IT -->
+  <section class="chapter" id="career">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">01</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">Current Chapter</div>
+        <div class="chapter-title">CLOUD &amp;<br>TECHNOLOGY</div>
+        <div class="chapter-subtitle">Where discipline meets digital transformation</div>
+      </div>
+    </div>
+
+    <div class="career-timeline">
+
+      <div class="career-entry reveal">
+        <div class="career-dates">MAY 2021 — APRIL 2026</div>
+        <div class="career-role">IT SPECIALIST III</div>
+        <div class="career-org">M365 Global Administrator &nbsp;·&nbsp; Urban Grid Solar Projects LLC, Houston TX</div>
+        <div class="career-desc">
+          Architected and administered Microsoft 365 and Entra ID environments at enterprise scale. 
+          Built Zero Trust security frameworks using Conditional Access and granular MFA policies. 
+          Integrated Microsoft Sentinel SIEM/SOAR for automated incident response. 
+          Developed custom PowerShell automation using the Microsoft Graph SDK, 
+          reducing provisioning time and streamlining compliance workflows.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">M365 / Entra ID</span>
+          <span class="career-tag">Zero Trust</span>
+          <span class="career-tag">Microsoft Sentinel</span>
+          <span class="career-tag">PowerShell</span>
+          <span class="career-tag">Defender for Endpoint</span>
+          <span class="career-tag">Intune UEM</span>
+          <span class="career-tag">Cisco Meraki</span>
+          <span class="career-tag">Azure &amp; AWS</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stat-row reveal">
+      <div class="stat-item">
+        <div class="stat-number">25+</div>
+        <div class="stat-label">Years Experience</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">M365</div>
+        <div class="stat-label">Global Admin</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">AI</div>
+        <div class="stat-label">Copilot &amp; LLM Ops</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">EDR</div>
+        <div class="stat-label">Threat Protection</div>
+      </div>
+    </div>
+
+    <div class="career-timeline">
+      <div class="career-entry reveal">
+        <div class="career-dates">AUG 1998 — MAY 2006</div>
+        <div class="career-role">GENERAL STUDIES &amp; COMPUTER APPLICATIONS</div>
+        <div class="career-org">Chesapeake College</div>
+        <div class="career-desc">
+          Built the academic and technical foundation that would underpin a career spanning 
+          both public safety technology and enterprise IT — including early work 
+          developing databases for community service organizations.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CERTIFICATIONS -->
+  <section class="chapter" id="certifications">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">02</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">Credentials</div>
+        <div class="chapter-title">CERTIFICATIONS<br>&amp; TRAINING</div>
+        <div class="chapter-subtitle">A record of continuous learning</div>
+      </div>
+    </div>
+
+    <div class="cert-grid">
+      <div class="cert-card reveal">
+        <div class="cert-issuer">CompTIA</div>
+        <div class="cert-name">A+<br>CERTIFIED CE</div>
+        <div class="cert-date">Version 2021 &nbsp;·&nbsp; Certified Feb 2021 &nbsp;·&nbsp; Renewed Apr 2024</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">CompTIA</div>
+        <div class="cert-name">Network+<br>CERTIFIED CE</div>
+        <div class="cert-date">Certified Apr 2021 &nbsp;·&nbsp; Valid through Apr 2024</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Maryland Police Training Commission</div>
+        <div class="cert-name">ENTRANCE LEVEL<br>LAW ENFORCEMENT</div>
+        <div class="cert-date">Jan–Jun 2008 &nbsp;·&nbsp; Eastern Shore Criminal Justice Academy</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Maryland Dept. of Public Safety</div>
+        <div class="cert-name">NCIC LOGON<br>CERTIFICATION</div>
+        <div class="cert-date">Issued Sep 12, 2011 &nbsp;·&nbsp; Criminal Justice Information System</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">MCTFT / St. Petersburg College</div>
+        <div class="cert-name">INTERVIEW &amp;<br>INTERROGATION</div>
+        <div class="cert-date">24-hour course &nbsp;·&nbsp; Salisbury, MD &nbsp;·&nbsp; Sep 2009</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Expert Consulting Services</div>
+        <div class="cert-name">DE-ESCALATION<br>CRISIS MGMT</div>
+        <div class="cert-date">MPCTC #P40257 &nbsp;·&nbsp; May 3, 2019</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Centreville Police Department</div>
+        <div class="cert-name">CPR &amp; AED<br>TRAINING</div>
+        <div class="cert-date">Course #P-27672 (6hrs) &nbsp;·&nbsp; March 7, 2016</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">University of Maryland — MFRI</div>
+        <div class="cert-name">HAZARDOUS<br>MATERIALS</div>
+        <div class="cert-date">12 hrs &nbsp;·&nbsp; June 2008 &nbsp;·&nbsp; Final Grade: 92%</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">RAPID — Queen Anne's Co.</div>
+        <div class="cert-name">REGIONAL AUTO<br>PROPERTY DB</div>
+        <div class="cert-date">4-hour training &nbsp;·&nbsp; November 14, 2011</div>
+      </div>
+      <div class="cert-card reveal">
+        <div class="cert-issuer">Centreville Police Department</div>
+        <div class="cert-name">AUTISM AWARENESS<br>DEVL. DISABILITIES</div>
+        <div class="cert-date">Course #P-41919 (4hrs) &nbsp;·&nbsp; October 15, 2020</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAW ENFORCEMENT -->
+  <section class="chapter" id="law">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">03</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">A Decade of Service</div>
+        <div class="chapter-title">LAW<br>ENFORCEMENT</div>
+        <div class="chapter-subtitle">Ten years protecting and serving Centreville, Maryland</div>
+      </div>
+    </div>
+
+    <div class="career-timeline">
+
+      <div class="career-entry reveal">
+        <div class="career-dates">JANUARY 2014</div>
+        <div class="career-role">CORPORAL</div>
+        <div class="career-org">Centreville Police Department &nbsp;·&nbsp; Queen Anne's County, MD</div>
+        <div class="career-desc">
+          Promoted to Corporal effective January 7, 2014 — recognized for leadership 
+          and sustained excellence in service. Signed by Col. Charles M. Rhodes, Chief of Police.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">Leadership</span>
+          <span class="career-tag">Supervision</span>
+          <span class="career-tag">CJIS Compliance</span>
+        </div>
+      </div>
+
+      <div class="career-entry reveal">
+        <div class="career-dates">JANUARY 2010</div>
+        <div class="career-role">OFFICER FIRST CLASS</div>
+        <div class="career-org">Centreville Police Department</div>
+        <div class="career-desc">
+          Promoted to Officer First Class effective January 6, 2010. 
+          Served with distinction through patrol, community engagement, 
+          and specialized training programs.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">Patrol</span>
+          <span class="career-tag">Community Relations</span>
+          <span class="career-tag">Traffic Enforcement</span>
+        </div>
+      </div>
+
+      <div class="career-entry reveal">
+        <div class="career-dates">JUNE 2008 — TENURE</div>
+        <div class="career-role">POLICE OFFICER</div>
+        <div class="career-org">Centreville Police Department &nbsp;·&nbsp; Graduate, Eastern Shore Criminal Justice Academy</div>
+        <div class="career-desc">
+          Graduated from the 60th entrance-level class of the Eastern Shore Criminal Justice Academy 
+          (Wor-Wic Community College), completing 941 hours of instruction in law enforcement. 
+          One of a cohort that included officers from Dorchester, Kent, Queen Anne's, and Talbot counties.
+        </div>
+        <div class="career-tags">
+          <span class="career-tag">NCIC Certified</span>
+          <span class="career-tag">RAPID Trained</span>
+          <span class="career-tag">HazMat Awareness</span>
+          <span class="career-tag">Crisis Management</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="quote-callout reveal">
+      <div class="quote-text">"In recognition of completion of ten years of loyal and dedicated service to the Town of Centreville."</div>
+      <div class="quote-source">Town of Centreville &nbsp;·&nbsp; Certificate of Appreciation &nbsp;·&nbsp; Centreville, Maryland</div>
+    </div>
+
+    <div class="stat-row reveal">
+      <div class="stat-item">
+        <div class="stat-number">10</div>
+        <div class="stat-label">Years of Service</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">941</div>
+        <div class="stat-label">Training Hours</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">CPL</div>
+        <div class="stat-label">Final Rank</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MUSIC -->
+  <section class="chapter" id="music">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">04</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">The Other Stage</div>
+        <div class="chapter-title">MUSIC &amp;<br>SONGWRITING</div>
+        <div class="chapter-subtitle">From the Eastern Shore to Nashville and back</div>
+      </div>
+    </div>
+
+    <div class="music-grid reveal">
+      <div class="music-block">
+        <div class="music-block-accent"></div>
+        <div class="music-block-title">STATUE SPREAD</div>
+        <div class="music-block-sub">Rock Band — Queen Anne's County, MD</div>
+        <div class="music-block-body">
+          Founding member of Statue Spread — a local rock act that blended the musical 
+          abilities of Mike Waskey, Matt Baldea, Jesse Beck, Jarid Robinson, and Jon Gunther. 
+          Inspired by The Deaf Tones and Tool, the band performed at the Living Water 
+          Lutheran Church benefit concert in historic Stevensville, raising funds for the 
+          Living Water Food Bank. Featured in the local press.
+        </div>
+      </div>
+      <div class="music-block">
+        <div class="music-block-accent"></div>
+        <div class="music-block-title">BREAK IT DOWN</div>
+        <div class="music-block-sub">Original Song — Nashville Demo, 2004</div>
+        <div class="music-block-body">
+          Received a professional demo and certificate of originality from the Paramount Group 
+          in Nashville, Tennessee for the original song "Break It Down." 
+          Creative Director Norm Daniels wrote: <em>"It turned out very well. 
+          You're to be congratulated on doing such a good job on your writing. 
+          This is a demo that we and you can be proud to present to any music business professional."</em>
+          The melody was certified original and exclusive.
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-callout reveal" style="margin-top:40px;">
+      <div class="quote-text">"John Gunther plays his guitar and sings as he takes part in Sunday's annual walk across the Bay Bridge."</div>
+      <div class="quote-source">Associated Press &nbsp;·&nbsp; Chesapeake Bay Bridge Walk &nbsp;·&nbsp; Kent Island, MD</div>
+    </div>
+  </section>
+
+  <!-- COMMUNITY -->
+  <section class="chapter" id="community">
+    <div class="chapter-header reveal">
+      <div class="chapter-number">05</div>
+      <div class="chapter-header-text">
+        <div class="chapter-label">Beyond the Badge &amp; the Beat</div>
+        <div class="chapter-title">COMMUNITY<br>&amp; SERVICE</div>
+        <div class="chapter-subtitle">The record of a man who showed up</div>
+      </div>
+    </div>
+
+    <div class="community-list">
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">S</div>
+        <div>
+          <div class="comm-title">Supervised Career Orientation — Homeless Outreach</div>
+          <div class="comm-detail">
+            Featured in student newspaper for volunteering with Non-Profit Perspective Inc. 
+            and Community Assistance Network (CAN) in Baltimore, developing databases to 
+            organize and support homeless shelter operations. "Jon no longer works at the 
+            shelters but provides assistance to students using their work-based learning experience."
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">B</div>
+        <div>
+          <div class="comm-title">Chesapeake Bay Bridge Annual Walk</div>
+          <div class="comm-detail">
+            Participated in the 26th annual Bay Bridge Walk — the warmest in recent memory 
+            at 90°F — playing guitar and singing as an estimated 60,000 people crossed 
+            the 4.3-mile span. Featured by the Associated Press.
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">C</div>
+        <div>
+          <div class="comm-title">Cold Weather Shelter Initiative</div>
+          <div class="comm-detail">
+            Worked with community partners to support cold weather shelter programs, 
+            contributing organizational and technology skills to help coordinate 
+            services for vulnerable populations in the region.
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">L</div>
+        <div>
+          <div class="comm-title">Upper Shore Career Connections — Student Leadership</div>
+          <div class="comm-detail">
+            Certificate of Achievement awarded December 10, 1997 for participation in the 
+            Student Leadership/Career Peer Mentoring Program. Recognized by Heather Moore, 
+            Career Specialist.
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">F</div>
+        <div>
+          <div class="comm-title">Food Bank Benefit Concert</div>
+          <div class="comm-detail">
+            Statue Spread performed to benefit the Living Water Food Bank in Stevensville. 
+            All ticket proceeds — $3 or three cans of food — were donated to the food bank 
+            in the Island Plaza. "There's no need to be bored — it will be a great time."
+          </div>
+        </div>
+      </div>
+
+      <div class="comm-item reveal">
+        <div class="comm-icon">T</div>
+        <div>
+          <div class="comm-title">Ten Years — Town of Centreville</div>
+          <div class="comm-detail">
+            Formally recognized by the Centreville Town Council — including Council President 
+            Jim Beauchamp, Vice President Jeffrey Morgan, and Member Timothy McCluskey — 
+            for ten years of loyal and dedicated service to the town.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- CONTACT / FOOTER -->
+  <footer class="contact" id="contact">
+    <div class="contact-left">
+      <div class="contact-label">// Get in touch</div>
+      <div class="contact-name">LET'S<br>CONNECT</div>
+      <div class="contact-details">
+        <div class="contact-item">
+          <span class="contact-item-key">Email</span>
+          <span class="contact-item-val">guntherjw50@gmail.com</span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-item-key">Phone</span>
+          <span class="contact-item-val">+1 (443) 988-8663</span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-item-key">Location</span>
+          <span class="contact-item-val">Centreville, MD</span>
+        </div>
+      </div>
+    </div>
+    <div class="contact-right">
+      <div class="contact-tagline">"Still growing.<br>Always showing up."</div>
+      <div class="footer-sig">J · W · GUNTHER &nbsp;·&nbsp; EST. 1980</div>
+    </div>
+  </footer>
+
+</div><!-- end .main -->
+
+<script>
+  // Rail node active state on scroll
+  const sections = ['home','career','certifications','law','music','community','contact'];
+  const nodes = document.querySelectorAll('.rail-node');
+
+  function updateRail() {
+    let current = 0;
+    sections.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el && window.scrollY >= el.offsetTop - 200) current = i;
+    });
+    nodes.forEach((n, i) => n.classList.toggle('active', i === current));
+  }
+
+  window.addEventListener('scroll', updateRail, { passive: true });
+
+  // Scroll to section
+  function scrollTo(id) {
+    const el = document.querySelector(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  reveals.forEach(r => observer.observe(r));
+</script>
+</body>
+</html>
