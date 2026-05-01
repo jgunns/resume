@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Security+ SY0-701 Exam Simulator</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --panel-2: #243247;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --primary: #3b82f6;
+  --secondary: #475569;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --border: #334155;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+h1, h2, h3 { margin-top: 0; }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.card {
+  background: var(--panel);
+  padding: 20px;
+  border-radius: 12px;
+  margin: 14px 0;
+  border: 1px solid var(--border);
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.primary { background: var(--primary); color: #fff; }
+.secondary { background: var(--secondary); color: #fff; }
+.danger { background: var(--danger); color: #fff; }
+.warning { background: var(--warning); color: #111827; }
+.success { background: var(--success); color: #052e16; }
+.progressbar {
+  height: 12px;
+  background: #334155;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+.progressfill {
+  height: 100%;
+  background: var(--success);
+  width: 0%;
+  transition: width 0.2s ease;
+}
+.meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.questionText {
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+.option {
+  display: block;
+  background: var(--panel-2);
+  padding: 12px;
+  border-radius: 8px;
+  margin: 8px 0;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.option:hover { border-color: var(--primary); }
+.option input { margin-right: 8px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.grid button {
+  padding: 8px 0;
+  font-size: 0.85rem;
+}
+.grid .answered { background: var(--primary); color: #fff; }
+.grid .flagged { background: var(--warning); color: #111827; }
+.grid .current { outline: 3px solid #e5e7eb; }
+.correctText { color: var(--success); font-weight: bold; }
+.incorrectText { color: var(--danger); font-weight: bold; }
+.reviewItem {
+  border-left: 4px solid var(--danger);
+}
+.domainTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.domainTable th, .domainTable td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+  text-align: left;
+}
+.hidden { display: none; }
+select {
+  padding: 9px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+}
+@media (max-width: 700px) {
+  .grid { grid-template-columns: repeat(5, 1fr); }
+  .header { display: block; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>Security+ SY0-701 Exam Simulator</h1>
+      <div class="meta">Loads questions from <strong>questions.js</strong>. Keep both files in the same folder.</div>
+    </div>
+    <div class="card" style="min-width:230px; margin-top:0;">
+      <div><strong>Mode:</strong> <span id="modeLabel">Exam</span></div>
+      <div><strong>Timer:</strong> <span id="timer">90:00</span></div>
+      <div><strong>Best Score:</strong> <span id="bestScore">0%</span></div>
+      <div><strong>Attempts:</strong> <span id="attempts">0</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="loadError" style="display:none; border-left:4px solid var(--danger);">
+    <h2>Question file not loaded</h2>
+    <p>This HTML file expects a file named <strong>questions.js</strong> in the same folder.</p>
+    <p>Your <code>questions.js</code> file must define:</p>
+    <pre>var questions = [ ... ];</pre>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="card">
+      <label for="modeSelect"><strong>Mode:</strong></label>
+      <select id="modeSelect" onchange="setMode(this.value)">
+        <option value="exam">Exam mode - explanations hidden until submit</option>
+        <option value="study">Study mode - show answer after each question</option>
+        <option value="missed">Missed only - retake incorrect answers</option>
+      </select>
+      <div class="progressbar"><div id="progress" class="progressfill"></div></div>
+      <div class="meta" id="progressText"></div>
+    </div>
+
+    <div id="questionCard" class="card"></div>
+
+    <div class="controls">
+      <button class="secondary" onclick="prevQuestion()">Previous</button>
+      <button class="secondary" onclick="nextQuestion()">Next</button>
+      <button class="warning" onclick="toggleFlag()">Flag / Unflag</button>
+      <button class="primary" onclick="submitExam(false)">Submit Exam</button>
+      <button class="danger" onclick="resetProgress()">Reset Progress</button>
+    </div>
+
+    <div class="card">
+      <h3>Question Navigator</h3>
+      <div class="meta">Blue = answered, orange = flagged, white outline = current.</div>
+      <div id="grid" class="grid"></div>
+    </div>
+
+    <div id="results"></div>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+(function initializeApp(){
+  if (typeof questions === "undefined" || !Array.isArray(questions) || questions.length === 0) {
+    document.getElementById("loadError").style.display = "block";
+    return;
+  }
+  document.getElementById("app").style.display = "block";
+})();
+
+const STORAGE_KEY = "secplus701_exam_state_v1";
+const STATS_KEY = "secplus701_exam_stats_v1";
+const EXAM_SECONDS = 90 * 60;
+
+let state = loadState();
+let stats = loadStats();
+let currentIndex = 0;
+let mode = "exam";
+let activeQuestions = questions.slice();
+let timerInterval = null;
+let timeLeft = state.timeLeft ?? EXAM_SECONDS;
+let submitted = false;
+
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { answers:{}, flagged:{}, missed:[], timeLeft: EXAM_SECONDS };
+  } catch {
+    return { answers:{}, flagged:{}, missed:[], timeLeft: EXAM_SECONDS };
+  }
+}
+
+function loadStats() {
+  try {
+    return JSON.parse(localStorage.getItem(STATS_KEY)) || { bestScore:0, attempts:0 };
+  } catch {
+    return { bestScore:0, attempts:0 };
+  }
+}
+
+function saveState() {
+  state.timeLeft = timeLeft;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function saveStats() {
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+}
+
+function setMode(newMode) {
+  saveCurrentAnswer();
+  mode = newMode;
+  document.getElementById("modeLabel").textContent = mode === "exam" ? "Exam" : mode === "study" ? "Study" : "Missed Only";
+
+  if (mode === "missed") {
+    const missedSet = new Set(state.missed || []);
+    activeQuestions = questions.filter(q => missedSet.has(q.q));
+    if (activeQuestions.length === 0) {
+      activeQuestions = questions.slice();
+      alert("No missed questions saved yet. Showing the full question bank instead.");
+      document.getElementById("modeSelect").value = "exam";
+      mode = "exam";
+      document.getElementById("modeLabel").textContent = "Exam";
+    }
+  } else {
+    activeQuestions = questions.slice();
+  }
+
+  currentIndex = 0;
+  submitted = false;
+  document.getElementById("results").innerHTML = "";
+  renderQuestion();
+}
+
+function getCurrentQuestion() {
+  return activeQuestions[currentIndex];
+}
+
+function renderQuestion() {
+  if (!activeQuestions.length) return;
+  const q = getCurrentQuestion();
+  const selected = state.answers[q.q];
+
+  let html = `
+    <div class="meta">${q.domain || "Security+"}</div>
+    <h2>Question ${q.q}</h2>
+    <p class="questionText">${escapeHtml(q.text)}</p>
+  `;
+
+  for (const key of Object.keys(q.options)) {
+    html += `
+      <label class="option">
+        <input type="radio" name="answer" value="${key}" ${selected === key ? "checked" : ""} onchange="saveCurrentAnswer()">
+        <strong>${key}.</strong> ${escapeHtml(q.options[key])}
+      </label>
+    `;
+  }
+
+  if (mode === "study" && selected) {
+    const isCorrect = selected === q.answer;
+    html += `
+      <div class="card" style="background:#0f172a;">
+        <p class="${isCorrect ? "correctText" : "incorrectText"}">${isCorrect ? "Correct" : "Incorrect"}</p>
+        <p><strong>Correct answer:</strong> ${q.answer}. ${escapeHtml(q.options[q.answer])}</p>
+        <p>${escapeHtml(q.ex || "")}</p>
+      </div>
+    `;
+  }
+
+  document.getElementById("questionCard").innerHTML = html;
+  updateProgress();
+  buildGrid();
+}
+
+function saveCurrentAnswer() {
+  const q = getCurrentQuestion();
+  if (!q) return;
+  const selected = document.querySelector("input[name='answer']:checked");
+  if (selected) {
+    state.answers[q.q] = selected.value;
+    saveState();
+  }
+  updateProgress();
+  buildGrid();
+}
+
+function nextQuestion() {
+  saveCurrentAnswer();
+  if (currentIndex < activeQuestions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+}
+
+function prevQuestion() {
+  saveCurrentAnswer();
+  if (currentIndex > 0) {
+    currentIndex--;
+    renderQuestion();
+  }
+}
+
+function jumpTo(index) {
+  saveCurrentAnswer();
+  currentIndex = index;
+  renderQuestion();
+}
+
+function toggleFlag() {
+  const q = getCurrentQuestion();
+  if (!q) return;
+  state.flagged[q.q] = !state.flagged[q.q];
+  saveState();
+  buildGrid();
+}
+
+function buildGrid() {
+  const grid = document.getElementById("grid");
+  let html = "";
+
+  activeQuestions.forEach((q, index) => {
+    const classes = [];
+    if (state.answers[q.q]) classes.push("answered");
+    if (state.flagged[q.q]) classes.push("flagged");
+    if (index === currentIndex) classes.push("current");
+
+    html += `<button class="${classes.join(" ") || "secondary"}" onclick="jumpTo(${index})">${q.q}</button>`;
+  });
+
+  grid.innerHTML = html;
+}
+
+function updateProgress() {
+  const answered = activeQuestions.filter(q => state.answers[q.q]).length;
+  const percent = activeQuestions.length ? (answered / activeQuestions.length) * 100 : 0;
+  document.getElementById("progress").style.width = percent + "%";
+  document.getElementById("progressText").textContent = `${answered} of ${activeQuestions.length} answered`;
+  document.getElementById("bestScore").textContent = `${stats.bestScore}%`;
+  document.getElementById("attempts").textContent = stats.attempts;
+}
+
+function submitExam(autoSubmitted) {
+  saveCurrentAnswer();
+  submitted = true;
+
+  let score = 0;
+  const missed = [];
+  const domainStats = {};
+  let reviewHtml = "";
+
+  activeQuestions.forEach(q => {
+    const user = state.answers[q.q];
+    const correct = user === q.answer;
+
+    if (!domainStats[q.domain || "Other"]) {
+      domainStats[q.domain || "Other"] = { correct:0, total:0 };
+    }
+    domainStats[q.domain || "Other"].total++;
+
+    if (correct) {
+      score++;
+      domainStats[q.domain || "Other"].correct++;
+    } else {
+      missed.push(q.q);
+      reviewHtml += `
+        <div class="card reviewItem">
+          <div class="meta">${escapeHtml(q.domain || "Security+")}</div>
+          <p><strong>Q${q.q}:</strong> ${escapeHtml(q.text)}</p>
+          <p><strong>Your answer:</strong> ${user ? `${user}. ${escapeHtml(q.options[user])}` : "No answer selected"}</p>
+          <p><strong>Correct answer:</strong> ${q.answer}. ${escapeHtml(q.options[q.answer])}</p>
+          <p><strong>Explanation:</strong> ${escapeHtml(q.ex || "")}</p>
+        </div>
+      `;
+    }
+  });
+
+  state.missed = missed;
+  saveState();
+
+  const percent = Number(((score / activeQuestions.length) * 100).toFixed(1));
+  stats.attempts += 1;
+  if (percent > stats.bestScore) stats.bestScore = percent;
+  saveStats();
+
+  let domainHtml = `<table class="domainTable"><thead><tr><th>Domain</th><th>Score</th><th>Percent</th></tr></thead><tbody>`;
+  for (const [domain, ds] of Object.entries(domainStats)) {
+    const p = ((ds.correct / ds.total) * 100).toFixed(1);
+    domainHtml += `<tr><td>${escapeHtml(domain)}</td><td>${ds.correct}/${ds.total}</td><td>${p}%</td></tr>`;
+  }
+  domainHtml += `</tbody></table>`;
+
+  document.getElementById("results").innerHTML = `
+    <div class="card">
+      <h2>${autoSubmitted ? "Time expired — exam submitted" : "Exam Results"}</h2>
+      <h3>${score}/${activeQuestions.length} (${percent}%)</h3>
+      ${percent >= 75 ? `<p class="correctText">PASS</p>` : `<p class="incorrectText">FAIL</p>`}
+      <p><strong>Best Score:</strong> ${stats.bestScore}%</p>
+      <p><strong>Total Attempts:</strong> ${stats.attempts}</p>
+      <h3>Domain Breakdown</h3>
+      ${domainHtml}
+    </div>
+    <div class="card">
+      <h3>Review Incorrect Answers</h3>
+      ${reviewHtml || `<p class="correctText">No missed questions. Excellent work.</p>`}
+    </div>
+  `;
+
+  updateProgress();
+}
+
+function resetProgress() {
+  if (!confirm("Reset saved answers, flags, timer, and missed-question list? Best score and attempts will remain.")) return;
+  state = { answers:{}, flagged:{}, missed:[], timeLeft: EXAM_SECONDS };
+  timeLeft = EXAM_SECONDS;
+  currentIndex = 0;
+  submitted = false;
+  saveState();
+  document.getElementById("results").innerHTML = "";
+  renderQuestion();
+}
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    if (submitted || mode !== "exam") return;
+    timeLeft--;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      saveState();
+      updateTimerDisplay();
+      submitExam(true);
+      clearInterval(timerInterval);
+      return;
+    }
+    saveState();
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  document.getElementById("timer").textContent = `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+if (typeof questions !== "undefined" && Array.isArray(questions) && questions.length > 0) {
+  renderQuestion();
+  startTimer();
+}
+</script>
+</body>
+</html>
